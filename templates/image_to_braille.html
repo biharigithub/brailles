@@ -311,13 +311,34 @@ class ImageToBrailleConverter {
         
         const language = this.currentLanguage === 'hindi' ? 'hi-IN' : 'en-US';
         
+        // Show feedback to user
+        this.readExtractedBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Speaking...';
+        this.readExtractedBtn.disabled = true;
+        
         // Use the enhanced speech synthesis from speech.js
         if (window.enhancedSpeech) {
-            window.enhancedSpeech.speak(this.currentText, language);
+            window.enhancedSpeech.speak(this.currentText, language)
+                .then(() => {
+                    this.readExtractedBtn.innerHTML = '<i class="fas fa-volume-up"></i> Read Aloud';
+                    this.readExtractedBtn.disabled = false;
+                })
+                .catch((error) => {
+                    console.error('Speech error:', error);
+                    this.readExtractedBtn.innerHTML = '<i class="fas fa-volume-up"></i> Read Aloud';
+                    this.readExtractedBtn.disabled = false;
+                });
         } else {
             // Fallback to basic speech synthesis
             const utterance = new SpeechSynthesisUtterance(this.currentText);
             utterance.lang = language;
+            utterance.onend = () => {
+                this.readExtractedBtn.innerHTML = '<i class="fas fa-volume-up"></i> Read Aloud';
+                this.readExtractedBtn.disabled = false;
+            };
+            utterance.onerror = () => {
+                this.readExtractedBtn.innerHTML = '<i class="fas fa-volume-up"></i> Read Aloud';
+                this.readExtractedBtn.disabled = false;
+            };
             speechSynthesis.speak(utterance);
         }
     }

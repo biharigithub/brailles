@@ -107,6 +107,13 @@ The application follows a simple monolithic architecture built on Flask, designe
 ## Changelog
 
 - June 17, 2025. Initial setup
+- June 17, 2025. Enhanced navigation and Read Aloud functionality:
+  - Added "Back" and "Back to Homepage" buttons to all service pages
+  - Created dedicated Braille Image to Text service page with external redirect
+  - Implemented advanced Android Studio WebView-compatible Read Aloud
+  - Added automatic language detection for Hindi/English text
+  - Enhanced speech synthesis with chunked processing and multiple fallback methods
+  - Improved cross-platform compatibility for deployed applications and Android APKs
 
 ## User Preferences
 

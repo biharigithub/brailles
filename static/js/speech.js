@@ -93,20 +93,23 @@ class EnhancedSpeechSynthesis {
             return Promise.resolve();
         }
         
+        // Auto-detect language if not specified properly
+        const detectedLanguage = this.detectLanguage(text) || language;
+        
         return new Promise((resolve, reject) => {
             try {
                 // Stop any current speech
                 this.stop();
                 
                 // Try fallback methods first for better Android compatibility
-                if (this.tryFallbackSpeech(text, language)) {
+                if (this.tryFallbackSpeech(text, detectedLanguage)) {
                     resolve();
                     return;
                 }
                 
                 // Use standard Web Speech API
                 if (this.isSupported) {
-                    this.speakWithWebAPI(text, language, resolve, reject);
+                    this.speakWithWebAPI(text, detectedLanguage, resolve, reject);
                 } else {
                     console.warn('Speech synthesis not supported');
                     this.showSpeechNotSupportedMessage();
@@ -117,6 +120,28 @@ class EnhancedSpeechSynthesis {
                 reject(error);
             }
         });
+    }
+    
+    detectLanguage(text) {
+        // Simple language detection based on character sets
+        const hindiRegex = /[\u0900-\u097F]/;
+        const englishRegex = /[a-zA-Z]/;
+        
+        const hasHindi = hindiRegex.test(text);
+        const hasEnglish = englishRegex.test(text);
+        
+        if (hasHindi && !hasEnglish) {
+            return 'hi-IN';
+        } else if (hasEnglish && !hasHindi) {
+            return 'en-US';
+        } else if (hasHindi && hasEnglish) {
+            // Mixed text - use Hindi if it's predominant
+            const hindiMatches = text.match(hindiRegex) || [];
+            const englishMatches = text.match(englishRegex) || [];
+            return hindiMatches.length > englishMatches.length ? 'hi-IN' : 'en-US';
+        }
+        
+        return null; // Use provided language
     }
     
     tryFallbackSpeech(text, language) {
@@ -146,43 +171,107 @@ class EnhancedSpeechSynthesis {
     
     androidWebViewSpeech(text, language) {
         try {
-            // Method 1: Force sync speech with chunks
+            // Method 1: Multiple attempts with different configurations
             if (this.isSupported) {
-                const chunks = this.chunkText(text, 100);
-                let chunkIndex = 0;
+                // Try immediate speech first
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = language;
+                utterance.rate = 0.8;
+                utterance.pitch = 1;
+                utterance.volume = 1;
                 
-                const speakChunk = () => {
-                    if (chunkIndex >= chunks.length) return;
-                    
-                    const utterance = new SpeechSynthesisUtterance(chunks[chunkIndex]);
-                    utterance.lang = language;
-                    utterance.rate = 0.8;
-                    utterance.pitch = 1;
-                    utterance.volume = 1;
-                    
-                    utterance.onend = () => {
-                        chunkIndex++;
-                        setTimeout(speakChunk, 100);
-                    };
-                    
-                    utterance.onerror = (error) => {
-                        console.error('Chunk speech error:', error);
-                        chunkIndex++;
-                        setTimeout(speakChunk, 100);
-                    };
-                    
-                    speechSynthesis.speak(utterance);
+                // Force voice selection for better compatibility
+                const voices = speechSynthesis.getVoices();
+                const preferredVoice = voices.find(voice => 
+                    voice.lang.includes(language.split('-')[0]) || 
+                    voice.name.toLowerCase().includes(language.split('-')[0])
+                );
+                
+                if (preferredVoice) {
+                    utterance.voice = preferredVoice;
+                    console.log('Using preferred voice for Android:', preferredVoice.name);
+                }
+                
+                // Add multiple event handlers for reliability
+                let speechCompleted = false;
+                
+                utterance.onstart = () => {
+                    console.log('Android WebView speech started');
                 };
                 
-                speakChunk();
-                console.log('Used Android WebView chunked speech');
+                utterance.onend = () => {
+                    if (!speechCompleted) {
+                        speechCompleted = true;
+                        console.log('Android WebView speech completed');
+                    }
+                };
+                
+                utterance.onerror = (error) => {
+                    console.error('Android WebView speech error:', error);
+                    if (!speechCompleted) {
+                        // Try chunked fallback
+                        this.androidWebViewChunkedSpeech(text, language);
+                    }
+                };
+                
+                // Clear any existing speech
+                speechSynthesis.cancel();
+                
+                // Wait a moment then speak
+                setTimeout(() => {
+                    speechSynthesis.speak(utterance);
+                }, 200);
+                
+                console.log('Used Android WebView direct speech');
                 return true;
             }
         } catch (error) {
             console.error('Android WebView speech failed:', error);
+            // Try chunked method as fallback
+            return this.androidWebViewChunkedSpeech(text, language);
         }
         
         return false;
+    }
+    
+    androidWebViewChunkedSpeech(text, language) {
+        try {
+            const chunks = this.chunkText(text, 80); // Smaller chunks for better reliability
+            let chunkIndex = 0;
+            
+            const speakChunk = () => {
+                if (chunkIndex >= chunks.length) {
+                    console.log('Android WebView chunked speech completed');
+                    return;
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(chunks[chunkIndex]);
+                utterance.lang = language;
+                utterance.rate = 0.7; // Slower for better processing
+                utterance.pitch = 1;
+                utterance.volume = 1;
+                
+                utterance.onend = () => {
+                    chunkIndex++;
+                    setTimeout(speakChunk, 300); // Longer pause between chunks
+                };
+                
+                utterance.onerror = (error) => {
+                    console.error('Chunk speech error:', error);
+                    chunkIndex++;
+                    setTimeout(speakChunk, 300);
+                };
+                
+                speechSynthesis.speak(utterance);
+            };
+            
+            speakChunk();
+            console.log('Used Android WebView chunked speech fallback');
+            return true;
+        } catch (error) {
+            console.error('Android WebView chunked speech failed:', error);
+            return false;
+        }
     }
     
     triggerSpeechThroughUserAction(text, language) {
@@ -355,25 +444,86 @@ document.addEventListener('DOMContentLoaded', function() {
     const userAgent = navigator.userAgent;
     const isAndroid = /Android/i.test(userAgent);
     const isWebView = /wv\)/.test(userAgent);
+    const isAndroidStudio = /Android.*Version\/\d+\.\d+.*Chrome/.test(userAgent);
     
-    if (isAndroid && isWebView) {
-        console.log('Android WebView detected, applying optimizations');
+    if (isAndroid && (isWebView || isAndroidStudio)) {
+        console.log('Android WebView/Studio detected, applying comprehensive optimizations');
         
         // Enable hardware acceleration for better performance
         document.body.style.transform = 'translateZ(0)';
+        document.body.style.webkitTransform = 'translateZ(0)';
         
         // Optimize touch events
         document.addEventListener('touchstart', function() {}, { passive: true });
+        document.addEventListener('touchmove', function() {}, { passive: true });
         
-        // Preload speech synthesis
+        // Enhanced speech synthesis initialization
         if (typeof speechSynthesis !== 'undefined') {
-            speechSynthesis.getVoices();
+            // Multiple attempts to load voices
+            let voiceLoadAttempts = 0;
+            const maxVoiceLoadAttempts = 5;
             
-            // Trigger initial speech to activate the API
-            const testUtterance = new SpeechSynthesisUtterance('');
-            testUtterance.volume = 0;
-            speechSynthesis.speak(testUtterance);
+            const loadVoices = () => {
+                const voices = speechSynthesis.getVoices();
+                voiceLoadAttempts++;
+                
+                if (voices.length > 0) {
+                    console.log(`Voices loaded successfully on attempt ${voiceLoadAttempts}:`, voices.length);
+                    
+                    // Trigger initial speech to activate the API with actual voice
+                    const testUtterance = new SpeechSynthesisUtterance('test');
+                    testUtterance.volume = 0.01; // Very low but not zero
+                    testUtterance.rate = 0.1;
+                    testUtterance.pitch = 1;
+                    
+                    // Use first available voice
+                    if (voices[0]) {
+                        testUtterance.voice = voices[0];
+                    }
+                    
+                    speechSynthesis.speak(testUtterance);
+                } else if (voiceLoadAttempts < maxVoiceLoadAttempts) {
+                    setTimeout(loadVoices, 500);
+                }
+            };
+            
+            // Initial load
+            loadVoices();
+            
+            // Event-based loading
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = loadVoices;
+            }
+            
+            // Force wake up speech synthesis for Android
+            setTimeout(() => {
+                if (speechSynthesis.paused) {
+                    speechSynthesis.resume();
+                }
+            }, 1000);
         }
+        
+        // Add Android-specific CSS optimizations
+        const style = document.createElement('style');
+        style.textContent = `
+            * {
+                -webkit-tap-highlight-color: transparent;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                user-select: none;
+            }
+            
+            input, textarea, button {
+                -webkit-user-select: text;
+                user-select: text;
+            }
+            
+            .btn {
+                -webkit-transform: translateZ(0);
+                transform: translateZ(0);
+            }
+        `;
+        document.head.appendChild(style);
     }
 });
 
