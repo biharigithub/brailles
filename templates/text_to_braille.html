@@ -75,6 +75,22 @@
                         </div>
                     </div>
 
+                    <!-- Language Selection for Read Aloud -->
+                    <div class="mb-3">
+                        <label class="form-label h6">Read Aloud Language:</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="readLanguage" id="englishRead" value="english" checked>
+                            <label class="btn btn-outline-primary" for="englishRead">
+                                <i class="fas fa-flag-usa"></i> English
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="readLanguage" id="hindiRead" value="hindi">
+                            <label class="btn btn-outline-primary" for="hindiRead">
+                                <i class="fas fa-flag"></i> Hindi
+                            </label>
+                        </div>
+                    </div>
+
                     <!-- Control Buttons -->
                     <div class="d-flex gap-3 justify-content-center">
                         <button id="readAloudBtn" class="btn btn-success btn-lg" disabled>
@@ -305,13 +321,17 @@ class TextToBrailleConverter {
         const text = this.textInput.value.trim();
         if (!text) return;
         
+        // Get selected language
+        const selectedLanguage = document.querySelector('input[name="readLanguage"]:checked').value;
+        const languageCode = selectedLanguage === 'hindi' ? 'hi-IN' : 'en-US';
+        
         // Use the enhanced speech synthesis from speech.js
         if (window.enhancedSpeech) {
-            window.enhancedSpeech.speak(text, 'en-US');
+            window.enhancedSpeech.speak(text, languageCode);
         } else {
             // Fallback to basic speech synthesis
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US';
+            utterance.lang = languageCode;
             speechSynthesis.speak(utterance);
         }
     }

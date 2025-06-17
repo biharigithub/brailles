@@ -92,6 +92,10 @@ def text_to_braille_page():
 def image_to_braille_page():
     return render_template('image_to_braille.html')
 
+@app.route('/braille-image-to-text')
+def braille_image_to_text_page():
+    return render_template('braille_image_to_text.html')
+
 @app.route('/about')
 def about():
     return render_template('about.html')
@@ -134,7 +138,7 @@ def api_image_to_braille():
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
         
-        if not allowed_file(file.filename):
+        if not file.filename or not allowed_file(file.filename):
             return jsonify({'error': 'Invalid file type'}), 400
         
         # Save uploaded file
