@@ -35,32 +35,96 @@ BRAILLE_MAP = {
     '3': '⠉', '4': '⠙', '5': '⠑', '6': '⠋', '7': '⠛', '8': '⠓', '9': '⠊', '0': '⠚'
 }
 
-# Hindi Braille mapping (basic vowels and consonants)
+# Comprehensive Hindi Braille mapping with matras and conjuncts
 HINDI_BRAILLE_MAP = {
+    # Independent vowels
     'अ': '⠁', 'आ': '⠜', 'इ': '⠊', 'ई': '⠔', 'उ': '⠥', 'ऊ': '⠳', 'ए': '⠑', 'ऐ': '⠌',
-    'ओ': '⠕', 'औ': '⠪', 'क': '⠅', 'ख': '⠨', 'ग': '⠛', 'घ': '⠣', 'ङ': '⠒', 'च': '⠉',
-    'छ': '⠡', 'ज': '⠚', 'झ': '⠯', 'ञ': '⠝', 'ट': '⠞', 'ठ': '⠹', 'ड': '⠙', 'ढ': '⠮',
-    'ण': '⠼', 'त': '⠞', 'थ': '⠹', 'द': '⠙', 'ध': '⠮', 'न': '⠝', 'प': '⠏', 'फ': '⠋',
-    'ब': '⠃', 'भ': '⠘', 'म': '⠍', 'य': '⠽', 'र': '⠗', 'ल': '⠇', 'व': '⠧', 'श': '⠩',
-    'ष': '⠱', 'स': '⠎', 'ह': '⠓', ' ': '⠀', '।': '⠲', ',': '⠂'
+    'ओ': '⠕', 'औ': '⠪', 'अं': '⠁⠰', 'अः': '⠁⠱',
+    
+    # Consonants
+    'क': '⠅', 'ख': '⠨', 'ग': '⠛', 'घ': '⠣', 'ङ': '⠒',
+    'च': '⠉', 'छ': '⠡', 'ज': '⠚', 'झ': '⠯', 'ञ': '⠝',
+    'ट': '⠞', 'ठ': '⠹', 'ड': '⠙', 'ढ': '⠮', 'ण': '⠼',
+    'त': '⠞', 'थ': '⠹', 'द': '⠙', 'ध': '⠮', 'न': '⠝',
+    'प': '⠏', 'फ': '⠋', 'ब': '⠃', 'भ': '⠘', 'म': '⠍',
+    'य': '⠽', 'र': '⠗', 'ल': '⠇', 'व': '⠧',
+    'श': '⠩', 'ष': '⠱', 'स': '⠎', 'ह': '⠓',
+    
+    # Matras (dependent vowel signs)
+    'ा': '⠜', 'ि': '⠊', 'ी': '⠔', 'ु': '⠥', 'ू': '⠳', 'े': '⠑', 'ै': '⠌',
+    'ो': '⠕', 'ौ': '⠪', 'ं': '⠰', 'ः': '⠱', '्': '⠈',
+    
+    # Common conjuncts and special characters
+    'क्ष': '⠅⠈⠱', 'त्र': '⠞⠈⠗', 'ज्ञ': '⠚⠈⠝', 'श्र': '⠩⠈⠗',
+    
+    # Numerals
+    '०': '⠚', '१': '⠁', '२': '⠃', '३': '⠉', '४': '⠙', '५': '⠑',
+    '६': '⠋', '७': '⠛', '८': '⠓', '९': '⠊',
+    
+    # Punctuation
+    ' ': '⠀', '।': '⠲', '?': '⠦', '!': '⠖', ',': '⠂', '.': '⠲',
+    '(': '⠦', ')': '⠴', '"': '⠦', ':': '⠒', ';': '⠆', '-': '⠤'
 }
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def text_to_braille(text, language='english'):
-    """Convert text to Braille Unicode"""
+    """Convert text to Braille Unicode with enhanced matra support"""
     if not text:
         return ""
     
-    braille_map = HINDI_BRAILLE_MAP if language == 'hindi' else BRAILLE_MAP
+    if language == 'hindi':
+        return convert_hindi_to_braille(text)
+    else:
+        return convert_english_to_braille(text.lower())
+
+def convert_english_to_braille(text):
+    """Convert English text to Braille"""
     braille_text = ""
-    
-    for char in text.lower():
-        if char in braille_map:
-            braille_text += braille_map[char]
+    for char in text:
+        if char in BRAILLE_MAP:
+            braille_text += BRAILLE_MAP[char]
         else:
-            braille_text += char  # Keep unmapped characters as is
+            braille_text += char  # Keep unmapped characters
+    return braille_text
+
+def convert_hindi_to_braille(text):
+    """Convert Hindi text to Braille with proper matra handling"""
+    braille_text = ""
+    i = 0
+    
+    while i < len(text):
+        char = text[i]
+        
+        # Check for multi-character conjuncts first
+        if i < len(text) - 2:
+            three_char = text[i:i+3]
+            if three_char in HINDI_BRAILLE_MAP:
+                braille_text += HINDI_BRAILLE_MAP[three_char]
+                i += 3
+                continue
+        
+        # Check for two-character combinations
+        if i < len(text) - 1:
+            two_char = text[i:i+2]
+            if two_char in HINDI_BRAILLE_MAP:
+                braille_text += HINDI_BRAILLE_MAP[two_char]
+                i += 2
+                continue
+        
+        # Single character conversion
+        if char in HINDI_BRAILLE_MAP:
+            braille_text += HINDI_BRAILLE_MAP[char]
+        else:
+            # If character not found, try to handle it gracefully
+            if ord(char) >= 0x0900 and ord(char) <= 0x097F:  # Devanagari range
+                # Unknown Devanagari character, add a placeholder
+                braille_text += "⠿"  # Braille pattern dots-123456
+            else:
+                braille_text += char
+        
+        i += 1
     
     return braille_text
 

@@ -1,6 +1,6 @@
 /**
- * Enhanced Speech Synthesis for Android WebView Compatibility
- * Optimized for Braille World Application
+ * Ultra-Compatible Speech Synthesis for Android WebView & Java Integration
+ * Designed specifically for Android Studio WebView and APK deployment
  */
 
 class AndroidCompatibleSpeech {
@@ -10,16 +10,22 @@ class AndroidCompatibleSpeech {
         this.currentUtterance = null;
         this.isAndroid = this.detectAndroid();
         this.isWebView = this.detectWebView();
+        this.isJavaWebView = this.detectJavaWebView();
         this.queue = [];
         this.isPlaying = false;
+        this.retryCount = 0;
+        this.maxRetries = 3;
         
+        // Android-specific initialization
+        this.setupAndroidInterface();
         this.initializeVoices();
         this.setupEventListeners();
         
         console.log('AndroidCompatibleSpeech initialized:', {
             isSupported: this.isSupported,
             isAndroid: this.isAndroid,
-            isWebView: this.isWebView
+            isWebView: this.isWebView,
+            isJavaWebView: this.isJavaWebView
         });
     }
     
@@ -30,7 +36,61 @@ class AndroidCompatibleSpeech {
     
     detectWebView() {
         const userAgent = navigator.userAgent.toLowerCase();
-        return userAgent.includes('wv') || userAgent.includes('version/') && userAgent.includes('chrome');
+        return userAgent.includes('wv') || 
+               (userAgent.includes('version/') && userAgent.includes('chrome')) ||
+               userAgent.includes('webview');
+    }
+    
+    detectJavaWebView() {
+        // Detect Android Studio WebView or Java-based WebView
+        return this.isAndroid && this.isWebView && 
+               (typeof window.Android !== 'undefined' || 
+                typeof window.JavaInterface !== 'undefined' ||
+                navigator.userAgent.includes('AndroidStudio'));
+    }
+    
+    setupAndroidInterface() {
+        // Try to establish communication with Android native layer
+        if (this.isAndroid) {
+            // Method 1: Standard Android WebView interface
+            if (typeof window.Android === 'undefined') {
+                window.Android = {
+                    speak: function(text, language) {
+                        console.log('Android interface not available, using fallback');
+                        return false;
+                    }
+                };
+            }
+            
+            // Method 2: Alternative Java interface
+            if (typeof window.JavaInterface === 'undefined') {
+                window.JavaInterface = {
+                    textToSpeech: function(text, language) {
+                        console.log('Java interface not available, using fallback');
+                        return false;
+                    }
+                };
+            }
+            
+            // Method 3: Create custom event for Android communication
+            this.setupAndroidEventSystem();
+        }
+    }
+    
+    setupAndroidEventSystem() {
+        // Custom event system for Android communication
+        document.addEventListener('androidSpeechReady', () => {
+            console.log('Android speech system ready');
+        });
+        
+        document.addEventListener('androidSpeechComplete', () => {
+            this.isPlaying = false;
+        });
+        
+        document.addEventListener('androidSpeechError', (event) => {
+            console.error('Android speech error:', event.detail);
+            this.isPlaying = false;
+        });
     }
     
     initializeVoices() {
@@ -138,12 +198,16 @@ class AndroidCompatibleSpeech {
         }
         
         const detectedLanguage = this.detectLanguage(text) || language;
+        this.retryCount = 0;
         
         return new Promise((resolve, reject) => {
             // Stop any current speech
             this.stop();
             
-            if (this.isAndroid && this.isWebView) {
+            // Priority order for Android WebView
+            if (this.isJavaWebView) {
+                this.speakJavaWebView(text, detectedLanguage, resolve, reject);
+            } else if (this.isAndroid && this.isWebView) {
                 this.speakAndroidWebView(text, detectedLanguage, resolve, reject);
             } else if (this.isSupported) {
                 this.speakStandard(text, detectedLanguage, resolve, reject);
@@ -151,6 +215,181 @@ class AndroidCompatibleSpeech {
                 this.fallbackMethod(text, resolve);
             }
         });
+    }
+    
+    speakJavaWebView(text, language, resolve, reject) {
+        console.log('Using Java WebView optimized speech method');
+        
+        // Method 1: Try Android native interface
+        if (window.Android && typeof window.Android.speak === 'function') {
+            try {
+                const result = window.Android.speak(text, language);
+                if (result !== false) {
+                    this.isPlaying = true;
+                    setTimeout(() => {
+                        this.isPlaying = false;
+                        resolve();
+                    }, text.length * 100); // Estimate duration
+                    return;
+                }
+            } catch (error) {
+                console.error('Android native speech failed:', error);
+            }
+        }
+        
+        // Method 2: Try JavaInterface
+        if (window.JavaInterface && typeof window.JavaInterface.textToSpeech === 'function') {
+            try {
+                const result = window.JavaInterface.textToSpeech(text, language);
+                if (result !== false) {
+                    this.isPlaying = true;
+                    setTimeout(() => {
+                        this.isPlaying = false;
+                        resolve();
+                    }, text.length * 100);
+                    return;
+                }
+            } catch (error) {
+                console.error('Java interface speech failed:', error);
+            }
+        }
+        
+        // Method 3: Custom event system
+        this.tryAndroidEventSpeech(text, language, resolve, reject);
+    }
+    
+    tryAndroidEventSpeech(text, language, resolve, reject) {
+        // Dispatch custom event for Android to handle
+        const speechEvent = new CustomEvent('requestSpeech', {
+            detail: {
+                text: text,
+                language: language,
+                timestamp: Date.now()
+            }
+        });
+        
+        document.dispatchEvent(speechEvent);
+        
+        // Wait for Android response or fallback
+        let responded = false;
+        
+        const successHandler = () => {
+            if (!responded) {
+                responded = true;
+                resolve();
+            }
+        };
+        
+        const errorHandler = () => {
+            if (!responded) {
+                responded = true;
+                this.speakAdvancedFallback(text, language, resolve, reject);
+            }
+        };
+        
+        document.addEventListener('androidSpeechComplete', successHandler, { once: true });
+        document.addEventListener('androidSpeechError', errorHandler, { once: true });
+        
+        // Timeout fallback
+        setTimeout(() => {
+            if (!responded) {
+                responded = true;
+                document.removeEventListener('androidSpeechComplete', successHandler);
+                document.removeEventListener('androidSpeechError', errorHandler);
+                this.speakAdvancedFallback(text, language, resolve, reject);
+            }
+        }, 2000);
+    }
+    
+    speakAdvancedFallback(text, language, resolve, reject) {
+        console.log('Using advanced fallback speech method');
+        
+        // Multi-attempt speech with different strategies
+        if (this.retryCount < this.maxRetries) {
+            this.retryCount++;
+            
+            // Strategy based on retry count
+            switch (this.retryCount) {
+                case 1:
+                    this.speakWithForceLoad(text, language, resolve, reject);
+                    break;
+                case 2:
+                    this.speakInChunks(text, language, resolve, reject);
+                    break;
+                case 3:
+                    this.speakWithAlternativeSettings(text, language, resolve, reject);
+                    break;
+                default:
+                    this.fallbackMethod(text, resolve);
+            }
+        } else {
+            this.fallbackMethod(text, resolve);
+        }
+    }
+    
+    speakWithForceLoad(text, language, resolve, reject) {
+        // Force load voices and try again
+        speechSynthesis.cancel();
+        
+        setTimeout(() => {
+            speechSynthesis.getVoices();
+            setTimeout(() => {
+                this.speakStandard(text, language, resolve, reject);
+            }, 200);
+        }, 100);
+    }
+    
+    speakWithAlternativeSettings(text, language, resolve, reject) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Use minimal settings for maximum compatibility
+        utterance.lang = language;
+        utterance.rate = 0.5;  // Very slow
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        
+        // Don't set voice, let system choose
+        
+        utterance.onstart = () => {
+            this.isPlaying = true;
+        };
+        
+        utterance.onend = () => {
+            this.isPlaying = false;
+            resolve();
+        };
+        
+        utterance.onerror = (error) => {
+            console.error('Alternative settings speech error:', error);
+            this.isPlaying = false;
+            this.fallbackMethod(text, resolve);
+        };
+        
+        this.currentUtterance = utterance;
+        
+        // Force speak with multiple attempts
+        this.forceMultiAttemptSpeak(utterance);
+    }
+    
+    forceMultiAttemptSpeak(utterance) {
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        const attemptSpeak = () => {
+            attempts++;
+            speechSynthesis.speak(utterance);
+            
+            // Check if speaking started
+            setTimeout(() => {
+                if (!speechSynthesis.speaking && !speechSynthesis.pending && attempts < maxAttempts) {
+                    console.log(`Speech attempt ${attempts} failed, retrying...`);
+                    speechSynthesis.cancel();
+                    setTimeout(attemptSpeak, 100 * attempts); // Increasing delay
+                }
+            }, 100);
+        };
+        
+        attemptSpeak();
     }
     
     speakAndroidWebView(text, language, resolve, reject) {
@@ -360,11 +599,45 @@ class AndroidCompatibleSpeech {
     }
     
     fallbackMethod(text, resolve) {
-        console.log('Using fallback method for speech');
+        console.log('Using comprehensive fallback method for speech');
         
-        // Create visual feedback
-        this.showTextModal(text);
-        resolve();
+        // Try one final audio-based approach
+        this.tryAudioAPIFallback(text).then(() => {
+            resolve();
+        }).catch(() => {
+            // Create visual feedback as last resort
+            this.showTextModal(text);
+            resolve();
+        });
+    }
+    
+    tryAudioAPIFallback(text) {
+        return new Promise((resolve, reject) => {
+            // Try to create audio with text-to-speech service
+            try {
+                // Create a simple beep to indicate speech attempt
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+                
+                setTimeout(() => {
+                    resolve();
+                }, 600);
+                
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
     
     showTextModal(text) {
@@ -373,6 +646,9 @@ class AndroidCompatibleSpeech {
         if (existingModal) {
             existingModal.remove();
         }
+        
+        // Detect language for proper display
+        const isHindi = /[\u0900-\u097F]/.test(text);
         
         // Create modal
         const modal = document.createElement('div');
@@ -391,36 +667,36 @@ class AndroidCompatibleSpeech {
             max-height: 80%;
             overflow-y: auto;
             border: 2px solid #2563eb;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: ${isHindi ? "'Noto Sans Devanagari', " : ""}-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         `;
         
         modal.innerHTML = `
             <div style="text-align: center; margin-bottom: 1rem;">
                 <h3 style="margin: 0; color: #2563eb; font-size: 1.5rem;">
                     <i class="fas fa-volume-up" style="margin-right: 0.5rem;"></i>
-                    Read Aloud
+                    ${isHindi ? 'पाठ सुनें' : 'Read Aloud'}
                 </h3>
             </div>
-            <div style="line-height: 1.6; color: #1e293b; font-size: 1.1rem; margin-bottom: 1.5rem;">
+            <div style="line-height: 1.8; color: #1e293b; font-size: ${isHindi ? '1.3rem' : '1.1rem'}; margin-bottom: 1.5rem; text-align: ${isHindi ? 'left' : 'left'};">
                 ${text}
             </div>
             <div style="text-align: center;">
                 <button onclick="this.closest('#speech-fallback-modal').remove()" 
                         style="background: #2563eb; color: white; border: none; padding: 0.75rem 2rem; 
                                border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600;">
-                    Close
+                    ${isHindi ? 'बंद करें' : 'Close'}
                 </button>
             </div>
         `;
         
         document.body.appendChild(modal);
         
-        // Auto-remove after 15 seconds
+        // Auto-remove after 20 seconds for Hindi (more reading time needed)
         setTimeout(() => {
             if (modal.parentElement) {
                 modal.remove();
             }
-        }, 15000);
+        }, isHindi ? 20000 : 15000);
     }
 }
 
