@@ -98,6 +98,14 @@
                             <label class="form-label h5">Braille Output:</label>
                             <div id="brailleOutput" class="braille-display p-4 rounded border" style="background: white; border: 2px solid #e2e8f0 !important; color: #1e293b !important;"></div>
                         </div>
+
+                        <!-- Character Mapping Display -->
+                        <div class="mb-4" id="characterMappingSection" style="display: none;">
+                            <label class="form-label h5">Character-by-Character Braille Mapping:</label>
+                            <div id="characterMapping" class="p-3 rounded border" style="background: white; border: 2px solid #e2e8f0 !important; font-family: 'Courier New', monospace;">
+                                <!-- Character mappings will be displayed here -->
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Control Buttons -->
@@ -272,12 +280,13 @@ class ImageToBrailleConverter {
     
     displayResults(extractedText, brailleText, language) {
         this.currentText = extractedText;
+        this.currentLanguage = language;
         
         // Display extracted text
         this.extractedText.innerHTML = `
             <div class="text-center">
                 <h6 class="text-muted mb-2">Extracted ${language.charAt(0).toUpperCase() + language.slice(1)} Text</h6>
-                <p class="fs-5">${extractedText}</p>
+                <p class="fs-5" style="font-family: ${language === 'hindi' ? "'Noto Sans Devanagari', " : ""}system-ui;">${extractedText}</p>
             </div>
         `;
         
@@ -291,7 +300,156 @@ class ImageToBrailleConverter {
             </div>
         `;
         
+        // Display character mapping
+        this.displayCharacterMapping(extractedText, language);
+        
         this.resultsSection.classList.remove('d-none');
+    }
+    
+    displayCharacterMapping(text, language) {
+        const characterMappingSection = document.getElementById('characterMappingSection');
+        const characterMapping = document.getElementById('characterMapping');
+        
+        if (language === 'hindi') {
+            this.displayHindiCharacterMapping(text, characterMapping);
+        } else {
+            this.displayEnglishCharacterMapping(text, characterMapping);
+        }
+        
+        characterMappingSection.style.display = 'block';
+    }
+    
+    displayEnglishCharacterMapping(text, container) {
+        // Braille mapping for English
+        const brailleMap = {
+            'a': '⠁', 'b': '⠃', 'c': '⠉', 'd': '⠙', 'e': '⠑', 'f': '⠋', 'g': '⠛', 'h': '⠓',
+            'i': '⠊', 'j': '⠚', 'k': '⠅', 'l': '⠇', 'm': '⠍', 'n': '⠝', 'o': '⠕', 'p': '⠏',
+            'q': '⠟', 'r': '⠗', 's': '⠎', 't': '⠞', 'u': '⠥', 'v': '⠧', 'w': '⠺', 'x': '⠭',
+            'y': '⠽', 'z': '⠵', ' ': '⠀', '.': '⠲', ',': '⠂', '?': '⠦', '!': '⠖', "'": '⠄',
+            '-': '⠤', '(': '⠦', ')': '⠴', '"': '⠦', ':': '⠒', ';': '⠆', '1': '⠁', '2': '⠃',
+            '3': '⠉', '4': '⠙', '5': '⠑', '6': '⠋', '7': '⠛', '8': '⠓', '9': '⠊', '0': '⠚'
+        };
+        
+        let mappingHTML = '<div class="row text-center">';
+        
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i].toLowerCase();
+            const brailleChar = brailleMap[char] || char;
+            
+            mappingHTML += `
+                <div class="col-auto mb-3" style="min-width: 60px;">
+                    <div class="character-box p-2 border rounded" style="background: #f8fafc;">
+                        <div class="original-char" style="font-size: 1.2rem; font-weight: bold; color: #1e293b;">
+                            ${text[i]}
+                        </div>
+                        <div class="arrow" style="color: #64748b; font-size: 0.8rem; margin: 2px 0;">
+                            ↓
+                        </div>
+                        <div class="braille-char" style="font-size: 1.5rem; color: #2563eb; font-family: 'Courier New', monospace;">
+                            ${brailleChar}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        mappingHTML += '</div>';
+        container.innerHTML = mappingHTML;
+    }
+    
+    displayHindiCharacterMapping(text, container) {
+        // Hindi Braille mapping including matras
+        const hindiBrailleMap = {
+            // Independent vowels
+            'अ': '⠁', 'आ': '⠜', 'इ': '⠊', 'ई': '⠔', 'उ': '⠥', 'ऊ': '⠳', 'ए': '⠑', 'ऐ': '⠌',
+            'ओ': '⠕', 'औ': '⠪',
+            
+            // Consonants
+            'क': '⠅', 'ख': '⠨', 'ग': '⠛', 'घ': '⠣', 'ङ': '⠒',
+            'च': '⠉', 'छ': '⠡', 'ज': '⠚', 'झ': '⠯', 'ञ': '⠝',
+            'ट': '⠞', 'ठ': '⠹', 'ड': '⠙', 'ढ': '⠮', 'ण': '⠼',
+            'त': '⠞', 'थ': '⠹', 'द': '⠙', 'ध': '⠮', 'न': '⠝',
+            'प': '⠏', 'फ': '⠋', 'ब': '⠃', 'भ': '⠘', 'म': '⠍',
+            'य': '⠽', 'र': '⠗', 'ल': '⠇', 'व': '⠧',
+            'श': '⠩', 'ष': '⠱', 'स': '⠎', 'ह': '⠓',
+            
+            // Matras (dependent vowel signs)
+            'ा': '⠜', 'ि': '⠊', 'ी': '⠔', 'ु': '⠥', 'ू': '⠳', 'े': '⠑', 'ै': '⠌',
+            'ो': '⠕', 'ौ': '⠪', 'ं': '⠰', 'ः': '⠱', '्': '⠈',
+            
+            // Common conjuncts
+            'क्ष': '⠅⠈⠱', 'त्र': '⠞⠈⠗', 'ज्ञ': '⠚⠈⠝', 'श्र': '⠩⠈⠗',
+            
+            // Numerals
+            '०': '⠚', '१': '⠁', '२': '⠃', '३': '⠉', '४': '⠙', '५': '⠑',
+            '६': '⠋', '७': '⠛', '८': '⠓', '९': '⠊',
+            
+            // Punctuation
+            ' ': '⠀', '।': '⠲', '?': '⠦', '!': '⠖', ',': '⠂', '.': '⠲'
+        };
+        
+        let mappingHTML = '<div class="text-center mb-3"><h6 class="text-muted">Words and Matras with Braille Representation</h6></div><div class="row text-center">';
+        
+        // Process character by character for Hindi
+        let i = 0;
+        while (i < text.length) {
+            let char = text[i];
+            let brailleChar = hindiBrailleMap[char] || char;
+            let charType = '';
+            
+            // Identify character type
+            if (char >= 'अ' && char <= 'औ') {
+                charType = 'vowel';
+            } else if (char >= 'क' && char <= 'ह') {
+                charType = 'consonant';
+            } else if (['ा', 'ि', 'ी', 'ु', 'ू', 'े', 'ै', 'ो', 'ौ', 'ं', 'ः', '्'].includes(char)) {
+                charType = 'matra';
+            } else if (char >= '०' && char <= '९') {
+                charType = 'number';
+            } else if (char === ' ') {
+                charType = 'space';
+            } else {
+                charType = 'other';
+            }
+            
+            // Check for multi-character combinations
+            if (i < text.length - 2) {
+                const threeChar = text.substring(i, i + 3);
+                if (hindiBrailleMap[threeChar]) {
+                    char = threeChar;
+                    brailleChar = hindiBrailleMap[threeChar];
+                    i += 3;
+                } else {
+                    i++;
+                }
+            } else {
+                i++;
+            }
+            
+            const bgColor = charType === 'matra' ? '#fff3cd' : '#f8fafc';
+            const textColor = charType === 'matra' ? '#856404' : '#1e293b';
+            const label = charType === 'matra' ? 'Matra' : charType === 'consonant' ? 'Consonant' : charType === 'vowel' ? 'Vowel' : '';
+            
+            mappingHTML += `
+                <div class="col-auto mb-3" style="min-width: 80px;">
+                    <div class="character-box p-2 border rounded" style="background: ${bgColor};">
+                        ${label ? `<div class="char-type" style="font-size: 0.7rem; color: #64748b; margin-bottom: 2px;">${label}</div>` : ''}
+                        <div class="original-char" style="font-size: 1.4rem; font-weight: bold; color: ${textColor}; font-family: 'Noto Sans Devanagari', system-ui;">
+                            ${char}
+                        </div>
+                        <div class="arrow" style="color: #64748b; font-size: 0.8rem; margin: 2px 0;">
+                            ↓
+                        </div>
+                        <div class="braille-char" style="font-size: 1.5rem; color: #2563eb; font-family: 'Courier New', monospace;">
+                            ${brailleChar}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        mappingHTML += '</div>';
+        container.innerHTML = mappingHTML;
     }
     
     showError(message) {
@@ -303,6 +461,13 @@ class ImageToBrailleConverter {
         `;
         
         this.brailleOutput.innerHTML = '';
+        
+        // Hide character mapping section on error
+        const characterMappingSection = document.getElementById('characterMappingSection');
+        if (characterMappingSection) {
+            characterMappingSection.style.display = 'none';
+        }
+        
         this.resultsSection.classList.remove('d-none');
     }
     
@@ -350,6 +515,12 @@ class ImageToBrailleConverter {
         this.processingStatus.classList.add('d-none');
         this.processBtn.disabled = true;
         this.currentText = '';
+        
+        // Hide character mapping section
+        const characterMappingSection = document.getElementById('characterMappingSection');
+        if (characterMappingSection) {
+            characterMappingSection.style.display = 'none';
+        }
     }
 }
 

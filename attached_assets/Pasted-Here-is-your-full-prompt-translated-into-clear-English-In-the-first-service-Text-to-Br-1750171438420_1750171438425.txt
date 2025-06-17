@@ -1,0 +1,48 @@
+Here is your full prompt translated into clear English:
+
+---
+
+In the **first service (Text to Braille)**, make the following improvements:
+
+* When the text is converted into Braille in the output section:
+
+  * **Each character of the input text** should have its corresponding **Braille representation (dots or symbols)** shown **below it**, so the user understands what each character looks like in Braille.
+
+* Add a **sound-type button for Read Aloud**:
+
+  * When clicked, it should **read the text aloud**.
+  * Remove the **Hindi option** from the Text to Braille service — it's **not needed here**.
+  * Keep the Hindi language option **only in the Image to Braille service**.
+
+---
+
+In the **Image to Braille** service:
+
+* For **English text**:
+
+  * In the Braille output, show the **Braille dots or Braille representation under each character** of the extracted text, so users can understand the Braille meaning of each letter.
+
+* For **Hindi text**:
+
+  * When text is extracted from an image:
+
+    * In the Braille output, show **each word** along with its **corresponding Braille dots or language representation**.
+    * Also show **matras (vowel signs)** in Braille, just like the words, so users can understand what each matra looks like in Braille.
+
+---
+
+For the **Read Aloud** feature in all three services:
+
+1. **Improve it** so that:
+
+   * **Hindi text** is read aloud in **Hindi**.
+   * **English text** is read aloud in **English**.
+2. It should work **without issues when deployed on platforms like Render**.
+3. **Special care for Android Studio**:
+
+   * Currently, **Read Aloud doesn’t work** in **WebView on Android Studio**.
+   * So make sure the **Read Aloud button works correctly inside Android Studio WebView**.
+   * Since Android Studio uses **Java** for WebView, you likely already know how it works — design the Read Aloud to be compatible with that environment.
+   * This way, when I build the **APK** and install it on my phone, **Read Aloud should work smoothly** without needing extra setup.
+
+So, in all three services — **Text to Braille**, **Image to Braille**, and **Braille Image to Text** — make sure the **Read Aloud buttons** function properly both on web and Android (especially inside Android Studio WebView and in APKs).

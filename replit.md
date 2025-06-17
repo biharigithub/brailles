@@ -132,6 +132,12 @@ The application follows a simple monolithic architecture built on Flask, designe
   - Multi-attempt speech strategies with progressive fallbacks
   - Language-specific modal displays with Hindi font support
   - Audio API fallback with notification beeps for Android compatibility
+- June 17, 2025. Character-by-character Braille mapping display:
+  - Removed Hindi option from Text to Braille service (English only)
+  - Added visual character-to-Braille mapping for both Text to Braille and Image to Braille
+  - Enhanced Hindi character mapping with matra highlighting and type identification
+  - Color-coded display for vowels, consonants, and matras in Hindi
+  - Improved Read Aloud feedback with loading states and proper language detection
 
 ## Recent Changes
 
@@ -146,6 +152,10 @@ The application follows a simple monolithic architecture built on Flask, designe
 ✓ Advanced Android Studio WebView speech compatibility with Java interfaces
 ✓ Multi-strategy speech synthesis with progressive fallback systems
 ✓ Language-specific visual feedback with proper Hindi font rendering
+✓ Character-by-character Braille mapping display for learning
+✓ Removed Hindi option from Text to Braille (English only per requirements)
+✓ Enhanced matra visualization with color-coding and type labels
+✓ Improved Read Aloud with proper language detection and feedback
 → Application fully optimized for Android Studio WebView and APK deployment
 
 ## User Preferences
