@@ -1,0 +1,73 @@
+Service 1: Text to Braille
+When the user clicks "Try It", they should be taken inside the Text to Braille tool.
+
+Inside, there should be a text input box. When the user types anything in it:
+
+The Braille output should appear instantly as they type.
+
+Under each character of the text, show its Braille dot representation (i.e., Braille language form).
+
+Display both the regular text and the Braille dots in black or any visible color (avoid white) so that it's clearly visible.
+
+Microphone Feature:
+When the mic button is clicked, it should start recording.
+
+It should recognize the user's speech and display the recognized text in the input box.
+
+Then convert that text into Braille and show:
+
+The recognized text
+
+And the Braille representation of each character under it, in the output section.
+
+Read Aloud:
+Add a "Read Aloud" button with a sound icon.
+
+When clicked:
+
+It should read the text aloud.
+
+For Hindi text, it should read in Hindi.
+
+For English text, it should read in English.
+
+Make sure this works well even after deployment and functions correctly inside Android Studio WebView and APK (since usually read aloud doesn’t work well in Android Studio).
+
+Service 2: Image to Braille
+Add a language selection option: Hindi / English.
+
+Let users upload an image using drag-and-drop or a file upload button.
+
+For English:
+If the user selects English and uploads an image containing English text:
+
+Extract and display the recognized text from the image.
+
+Show the extracted text in black or visible colors (not white).
+
+Convert the extracted text into Braille, showing:
+
+Braille output
+
+And below each character, its corresponding Braille dot representation.
+
+For Hindi:
+If the user selects Hindi and uploads a Hindi image:
+
+Extract the Hindi text and display it in the Extracted Text section in a visible color.
+
+Convert that Hindi text into Braille, showing:
+
+Braille output
+
+And under each Hindi letter or vowel/matra, show its Braille form using Braille dots.
+
+Read Aloud:
+Add a Read Aloud button:
+
+When clicked in English mode, it reads the extracted English text aloud in English.
+
+When clicked in Hindi mode, it reads the extracted Hindi text aloud in Hindi.
+
+Ensure the Read Aloud works on deployed version and inside Android Studio WebView.
+
