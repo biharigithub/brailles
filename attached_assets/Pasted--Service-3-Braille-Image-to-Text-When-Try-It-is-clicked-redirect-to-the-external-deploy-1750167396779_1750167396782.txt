@@ -1,0 +1,66 @@
+ ## 📷 Service 3: Braille Image to Text
+
+When "Try It" is clicked, redirect to the external deployed tool using this link: dd the following button to the third service, Braille Image to Text: <button class="btn btn-primary mt-3" onclick="window.location.href='https://upd-image-to-braille-1.onrender.com/';">Try It</button>
+This way, when a user visits this service, they also have a way to go back to the homepage.For the "Read Aloud" feature in all three services: ### What this tool does:
+
+Users can upload an image that contains Braille script (Braille dots).
+
+The app should:
+
+Analyze the Braille patterns in the image.
+
+Recognize and convert those Braille dots into text.
+
+Display the extracted text.
+
+Add a "Read Aloud" button to speak the converted text aloud.
+
+🛠 Technical Requirements:
+The entire project must run via a single file: app.py using Flask.
+
+Frontend: Use HTML/CSS/Bootstrap/JavaScript.
+
+Backend: Use Python (Flask) with appropriate modules.
+
+Design should be clean, responsive, and mobile-friendly.
+
+The app should include:
+
+Microphone access and speech recognition
+
+Text-to-speech (read aloud) feature
+
+Image upload with OCR
+
+Braille conversion (Unicode Braille symbols)
+
+Support for Hindi and English
+
+Add an About Us page (keep it simple — brief info about the purpose or creator).
+
+Ensure there's a “Back to Homepage” option on all service pages.
+
+Add error handling for file upload failures or speech recognition issues.
+
+Ensure the whole app is deployment-ready (especially on Render.com).
+
+🔁 Final Notes:
+This web app is part of an internship submission, so it must be:
+
+Visually impressive and fully functional
+
+Easy to use and accessible
+
+Exactly matching the design and flow shown in the screenshots
+
+Clean and efficient in code and structure
+
+Please make sure there are no broken links, bugs, or placeholder features.
+
+Improve it by adding a sound type that can distinguish and read Hindi text in Hindi and English text in English.
+
+Make sure the "Read Aloud" works properly on Android Studio or emulator as well, since it doesn't function correctly there currently.
+
+Ensure it works in the generated APK too.
+
+Lastly, in the Image to Braille service (for Hindi image processing), improve the output a bit for better clarity and accuracy.
