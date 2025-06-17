@@ -56,7 +56,7 @@
                     <!-- Braille Output Section -->
                     <div class="mb-4">
                         <label class="form-label h5">Braille Output:</label>
-                        <div id="brailleOutput" class="braille-display p-4 bg-light rounded border">
+                        <div id="brailleOutput" class="braille-display p-4 rounded border" style="background: white; border: 2px solid #e2e8f0 !important; color: #1e293b !important;">
                             <div class="text-muted text-center">
                                 <i class="fas fa-braille fa-2x mb-2"></i>
                                 <p>Your Braille output will appear here</p>
@@ -67,7 +67,7 @@
                     <!-- Text Display Section -->
                     <div class="mb-4">
                         <label class="form-label h5">Text Display:</label>
-                        <div id="textDisplay" class="text-display p-3 bg-light rounded border">
+                        <div id="textDisplay" class="text-display p-3 rounded border" style="background: white; border: 2px solid #e2e8f0 !important; color: #1e293b !important; font-size: 1.1rem; line-height: 1.6;">
                             <div class="text-muted text-center">
                                 <i class="fas fa-font fa-2x mb-2"></i>
                                 <p>Your text will be displayed here</p>
@@ -274,14 +274,14 @@ class TextToBrailleConverter {
         this.textDisplay.innerHTML = `
             <div class="text-center">
                 <h6 class="text-muted mb-2">Original Text</h6>
-                <p class="fs-5">${text}</p>
+                <p class="fs-5" style="color: #1e293b !important;">${text}</p>
             </div>
         `;
         
         this.brailleOutput.innerHTML = `
             <div class="text-center">
                 <h6 class="text-muted mb-2">Braille Output</h6>
-                <div class="braille-text fs-1" style="font-family: 'Courier New', monospace; line-height: 1.2;">
+                <div class="braille-text fs-1" style="font-family: 'Courier New', monospace; line-height: 1.2; color: #1e293b !important;">
                     ${brailleText}
                 </div>
             </div>
