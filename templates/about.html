@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}About Us - Braille World{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Navigation Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <button onclick="history.back()" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-home"></i> Back to Homepage
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 fw-bold mb-3">About Braille World</h1>
+            <p class="lead text-muted">Empowering accessibility through innovative technology</p>
+        </div>
+    </div>
+
+    <!-- Mission Section -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-heart fa-3x text-primary mb-3"></i>
+                        <h2 class="h3 fw-bold">Our Mission</h2>
+                    </div>
+                    <p class="lead text-center">
+                        Braille World is dedicated to making digital content accessible to everyone, 
+                        particularly those with visual impairments. We believe that accessibility 
+                        should not be an afterthought but a fundamental right.
+                    </p>
+                    <p class="text-center">
+                        Through our innovative tools and technologies, we strive to bridge the gap 
+                        between the digital world and the visually impaired community, ensuring 
+                        that information and communication remain accessible to all.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- What We Do Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center fw-bold mb-4">What We Do</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-keyboard fa-2x text-primary mb-3"></i>
+                            <h5 class="fw-bold">Text Conversion</h5>
+                            <p class="text-muted">
+                                Convert text to Braille with voice recognition and 
+                                text-to-speech capabilities for seamless accessibility.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-image fa-2x text-primary mb-3"></i>
+                            <h5 class="fw-bold">Image Processing</h5>
+                            <p class="text-muted">
+                                Extract text from images using advanced OCR technology 
+                                with support for multiple languages including Hindi and English.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-universal-access fa-2x text-primary mb-3"></i>
+                            <h5 class="fw-bold">Accessibility Focus</h5>
+                            <p class="text-muted">
+                                Designed with accessibility in mind, ensuring compatibility 
+                                across all devices and platforms including mobile applications.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technology Section -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 bg-light">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-cogs fa-3x text-primary mb-3"></i>
+                        <h2 class="h3 fw-bold">Our Technology</h2>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Advanced OCR Technology
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Speech Recognition
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Text-to-Speech Synthesis
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Unicode Braille Conversion
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Multi-language Support
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Cross-platform Compatibility
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Values Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center fw-bold mb-4">Our Values</h2>
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="text-center">
+                        <i class="fas fa-users fa-2x text-primary mb-3"></i>
+                        <h5 class="fw-bold">Inclusivity</h5>
+                        <p class="text-muted">Creating tools that work for everyone, regardless of ability.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="text-center">
+                        <i class="fas fa-lightbulb fa-2x text-primary mb-3"></i>
+                        <h5 class="fw-bold">Innovation</h5>
+                        <p class="text-muted">Continuously improving and advancing accessibility technology.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="text-center">
+                        <i class="fas fa-shield-alt fa-2x text-primary mb-3"></i>
+                        <h5 class="fw-bold">Privacy</h5>
+                        <p class="text-muted">Protecting user data with secure processing and no permanent storage.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="text-center">
+                        <i class="fas fa-rocket fa-2x text-primary mb-3"></i>
+                        <h5 class="fw-bold">Excellence</h5>
+                        <p class="text-muted">Delivering high-quality, reliable solutions that users can depend on.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-5 text-center">
+                    <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                    <h2 class="h3 fw-bold mb-3">Get in Touch</h2>
+                    <p class="lead mb-4">
+                        Have questions, suggestions, or need support? We'd love to hear from you.
+                    </p>
+                    <p class="text-muted">
+                        This project was created as part of an internship program to demonstrate 
+                        the potential of accessible technology and its impact on the visually impaired community.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Services
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

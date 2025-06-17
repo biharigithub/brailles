@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block title %}Image to Braille - Braille World{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Navigation Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <button onclick="history.back()" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-home"></i> Back to Homepage
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-4 fw-bold mb-3">
+                <i class="fas fa-image text-primary"></i> Image to Braille
+            </h1>
+            <p class="lead text-muted">Extract text from images and convert to Braille</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <!-- Language Selection -->
+                    <div class="mb-4">
+                        <label class="form-label h5">Select Language:</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="language" id="englishLang" value="english" checked>
+                            <label class="btn btn-outline-primary" for="englishLang">
+                                <i class="fas fa-flag-usa"></i> English
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="language" id="hindiLang" value="hindi">
+                            <label class="btn btn-outline-primary" for="hindiLang">
+                                <i class="fas fa-flag"></i> Hindi
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Image Upload Section -->
+                    <div class="mb-4">
+                        <label for="imageInput" class="form-label h5">Upload Image:</label>
+                        <div class="upload-area" id="uploadArea">
+                            <input type="file" id="imageInput" class="form-control" accept="image/*" style="display: none;">
+                            <div class="upload-content text-center p-4">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <h6>Click to upload or drag and drop</h6>
+                                <p class="text-muted">Supports: PNG, JPG, JPEG, GIF, BMP, TIFF, WEBP</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Section -->
+                    <div id="imagePreview" class="mb-4 d-none">
+                        <label class="form-label h5">Image Preview:</label>
+                        <div class="text-center">
+                            <img id="previewImg" class="img-fluid rounded border" style="max-height: 300px;">
+                        </div>
+                    </div>
+
+                    <!-- Processing Status -->
+                    <div id="processingStatus" class="d-none">
+                        <div class="text-center p-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Processing image...</p>
+                        </div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="resultsSection" class="d-none">
+                        <!-- Extracted Text -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label h5">Extracted Text:</label>
+                                <button id="readExtractedBtn" class="btn btn-success">
+                                    <i class="fas fa-volume-up"></i> Read Aloud
+                                </button>
+                            </div>
+                            <div id="extractedText" class="text-display p-3 bg-light rounded border"></div>
+                        </div>
+
+                        <!-- Braille Output -->
+                        <div class="mb-4">
+                            <label class="form-label h5">Braille Output:</label>
+                            <div id="brailleOutput" class="braille-display p-4 bg-light rounded border"></div>
+                        </div>
+                    </div>
+
+                    <!-- Control Buttons -->
+                    <div class="d-flex gap-3 justify-content-center">
+                        <button id="processBtn" class="btn btn-primary btn-lg" disabled>
+                            <i class="fas fa-cogs"></i> Process Image
+                        </button>
+                        <button id="clearBtn" class="btn btn-outline-danger btn-lg">
+                            <i class="fas fa-eraser"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-lightbulb text-warning"></i> How to Use</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Select your preferred language</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Upload an image with text</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Click "Process Image" to extract text</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Use "Read Aloud" to hear the text</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+class ImageToBrailleConverter {
+    constructor() {
+        this.imageInput = document.getElementById('imageInput');
+        this.uploadArea = document.getElementById('uploadArea');
+        this.imagePreview = document.getElementById('imagePreview');
+        this.previewImg = document.getElementById('previewImg');
+        this.processBtn = document.getElementById('processBtn');
+        this.clearBtn = document.getElementById('clearBtn');
+        this.processingStatus = document.getElementById('processingStatus');
+        this.resultsSection = document.getElementById('resultsSection');
+        this.extractedText = document.getElementById('extractedText');
+        this.brailleOutput = document.getElementById('brailleOutput');
+        this.readExtractedBtn = document.getElementById('readExtractedBtn');
+        
+        this.currentLanguage = 'english';
+        this.currentText = '';
+        
+        this.initializeEventListeners();
+    }
+    
+    initializeEventListeners() {
+        // Upload area click
+        this.uploadArea.addEventListener('click', () => this.imageInput.click());
+        
+        // File input change
+        this.imageInput.addEventListener('change', (e) => this.handleFileSelect(e));
+        
+        // Drag and drop
+        this.uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            this.uploadArea.classList.add('drag-over');
+        });
+        
+        this.uploadArea.addEventListener('dragleave', () => {
+            this.uploadArea.classList.remove('drag-over');
+        });
+        
+        this.uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            this.uploadArea.classList.remove('drag-over');
+            this.handleFileSelect(e);
+        });
+        
+        // Language selection
+        document.querySelectorAll('input[name="language"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.currentLanguage = e.target.value;
+            });
+        });
+        
+        // Process button
+        this.processBtn.addEventListener('click', () => this.processImage());
+        
+        // Clear button
+        this.clearBtn.addEventListener('click', () => this.clearAll());
+        
+        // Read aloud button
+        this.readExtractedBtn.addEventListener('click', () => this.readAloud());
+    }
+    
+    handleFileSelect(e) {
+        const files = e.target.files || e.dataTransfer.files;
+        if (files.length === 0) return;
+        
+        const file = files[0];
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select a valid image file.');
+            return;
+        }
+        
+        // Validate file size (16MB max)
+        if (file.size > 16 * 1024 * 1024) {
+            alert('File size must be less than 16MB.');
+            return;
+        }
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.previewImg.src = e.target.result;
+            this.imagePreview.classList.remove('d-none');
+            this.processBtn.disabled = false;
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    processImage() {
+        const fileInput = this.imageInput;
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('Please select an image first.');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('image', fileInput.files[0]);
+        formData.append('language', this.currentLanguage);
+        
+        // Show processing status
+        this.processingStatus.classList.remove('d-none');
+        this.resultsSection.classList.add('d-none');
+        this.processBtn.disabled = true;
+        
+        fetch('/api/image-to-braille', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.processingStatus.classList.add('d-none');
+            this.processBtn.disabled = false;
+            
+            if (data.success) {
+                this.displayResults(data.extracted_text, data.braille_text, data.language);
+            } else {
+                this.showError(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Processing error:', error);
+            this.processingStatus.classList.add('d-none');
+            this.processBtn.disabled = false;
+            this.showError('Processing failed. Please try again.');
+        });
+    }
+    
+    displayResults(extractedText, brailleText, language) {
+        this.currentText = extractedText;
+        
+        // Display extracted text
+        this.extractedText.innerHTML = `
+            <div class="text-center">
+                <h6 class="text-muted mb-2">Extracted ${language.charAt(0).toUpperCase() + language.slice(1)} Text</h6>
+                <p class="fs-5">${extractedText}</p>
+            </div>
+        `;
+        
+        // Display Braille output
+        this.brailleOutput.innerHTML = `
+            <div class="text-center">
+                <h6 class="text-muted mb-2">Braille Output</h6>
+                <div class="braille-text fs-1" style="font-family: 'Courier New', monospace; line-height: 1.2;">
+                    ${brailleText}
+                </div>
+            </div>
+        `;
+        
+        this.resultsSection.classList.remove('d-none');
+    }
+    
+    showError(message) {
+        this.extractedText.innerHTML = `
+            <div class="text-danger text-center">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Error: ${message}</p>
+            </div>
+        `;
+        
+        this.brailleOutput.innerHTML = '';
+        this.resultsSection.classList.remove('d-none');
+    }
+    
+    readAloud() {
+        if (!this.currentText) return;
+        
+        const language = this.currentLanguage === 'hindi' ? 'hi-IN' : 'en-US';
+        
+        // Use the enhanced speech synthesis from speech.js
+        if (window.enhancedSpeech) {
+            window.enhancedSpeech.speak(this.currentText, language);
+        } else {
+            // Fallback to basic speech synthesis
+            const utterance = new SpeechSynthesisUtterance(this.currentText);
+            utterance.lang = language;
+            speechSynthesis.speak(utterance);
+        }
+    }
+    
+    clearAll() {
+        this.imageInput.value = '';
+        this.imagePreview.classList.add('d-none');
+        this.resultsSection.classList.add('d-none');
+        this.processingStatus.classList.add('d-none');
+        this.processBtn.disabled = true;
+        this.currentText = '';
+    }
+}
+
+// Initialize the converter when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    new ImageToBrailleConverter();
+});
+</script>
+
+<style>
+.upload-area {
+    border: 2px dashed #007bff;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    border-color: #0056b3;
+    background-color: #f8f9fa;
+}
+
+.upload-area.drag-over {
+    border-color: #28a745;
+    background-color: #d4edda;
+}
+
+.braille-display {
+    min-height: 100px;
+    font-size: 1.5rem;
+}
+
+.text-display {
+    min-height: 80px;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}Text to Braille - Braille World{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Navigation Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <button onclick="history.back()" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-home"></i> Back to Homepage
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-4 fw-bold mb-3">
+                <i class="fas fa-keyboard text-primary"></i> Text to Braille
+            </h1>
+            <p class="lead text-muted">Convert your text to Braille using typing or voice input</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <!-- Input Section -->
+                    <div class="mb-4">
+                        <label for="textInput" class="form-label h5">Enter your text:</label>
+                        <div class="input-group">
+                            <textarea id="textInput" class="form-control" rows="4" 
+                                placeholder="Type your text here or click the microphone to speak..."></textarea>
+                            <button class="btn btn-outline-primary" type="button" id="micButton">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle"></i> Click the microphone icon to use voice input
+                        </div>
+                    </div>
+
+                    <!-- Voice Status -->
+                    <div id="voiceStatus" class="alert alert-info d-none" role="alert">
+                        <i class="fas fa-microphone-alt"></i> <span id="statusText">Listening...</span>
+                    </div>
+
+                    <!-- Braille Output Section -->
+                    <div class="mb-4">
+                        <label class="form-label h5">Braille Output:</label>
+                        <div id="brailleOutput" class="braille-display p-4 bg-light rounded border">
+                            <div class="text-muted text-center">
+                                <i class="fas fa-braille fa-2x mb-2"></i>
+                                <p>Your Braille output will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Text Display Section -->
+                    <div class="mb-4">
+                        <label class="form-label h5">Text Display:</label>
+                        <div id="textDisplay" class="text-display p-3 bg-light rounded border">
+                            <div class="text-muted text-center">
+                                <i class="fas fa-font fa-2x mb-2"></i>
+                                <p>Your text will be displayed here</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Control Buttons -->
+                    <div class="d-flex gap-3 justify-content-center">
+                        <button id="readAloudBtn" class="btn btn-success btn-lg" disabled>
+                            <i class="fas fa-volume-up"></i> Read Aloud
+                        </button>
+                        <button id="clearBtn" class="btn btn-outline-danger btn-lg">
+                            <i class="fas fa-eraser"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-lightbulb text-warning"></i> How to Use</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Type text directly in the input box</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Click the microphone icon to use voice input</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Watch real-time Braille conversion</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Use "Read Aloud" to hear your text</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+class TextToBrailleConverter {
+    constructor() {
+        this.textInput = document.getElementById('textInput');
+        this.brailleOutput = document.getElementById('brailleOutput');
+        this.textDisplay = document.getElementById('textDisplay');
+        this.micButton = document.getElementById('micButton');
+        this.readAloudBtn = document.getElementById('readAloudBtn');
+        this.clearBtn = document.getElementById('clearBtn');
+        this.voiceStatus = document.getElementById('voiceStatus');
+        this.statusText = document.getElementById('statusText');
+        
+        this.recognition = null;
+        this.isListening = false;
+        
+        this.initializeEventListeners();
+        this.initializeSpeechRecognition();
+    }
+    
+    initializeEventListeners() {
+        this.textInput.addEventListener('input', () => this.convertText());
+        this.micButton.addEventListener('click', () => this.toggleSpeechRecognition());
+        this.readAloudBtn.addEventListener('click', () => this.readAloud());
+        this.clearBtn.addEventListener('click', () => this.clearAll());
+    }
+    
+    initializeSpeechRecognition() {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            this.micButton.disabled = true;
+            this.micButton.title = 'Speech recognition not supported';
+            return;
+        }
+        
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        this.recognition = new SpeechRecognition();
+        this.recognition.continuous = false;
+        this.recognition.interimResults = true;
+        this.recognition.lang = 'en-US';
+        
+        this.recognition.onstart = () => {
+            this.isListening = true;
+            this.micButton.innerHTML = '<i class="fas fa-stop"></i>';
+            this.micButton.classList.add('btn-danger');
+            this.micButton.classList.remove('btn-outline-primary');
+            this.showVoiceStatus('Listening...');
+        };
+        
+        this.recognition.onresult = (event) => {
+            let finalTranscript = '';
+            let interimTranscript = '';
+            
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            
+            if (finalTranscript) {
+                this.textInput.value = finalTranscript;
+                this.convertText();
+            }
+            
+            if (interimTranscript) {
+                this.statusText.textContent = `Heard: ${interimTranscript}`;
+            }
+        };
+        
+        this.recognition.onend = () => {
+            this.isListening = false;
+            this.micButton.innerHTML = '<i class="fas fa-microphone"></i>';
+            this.micButton.classList.remove('btn-danger');
+            this.micButton.classList.add('btn-outline-primary');
+            this.hideVoiceStatus();
+        };
+        
+        this.recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            this.statusText.textContent = `Error: ${event.error}`;
+            setTimeout(() => this.hideVoiceStatus(), 3000);
+        };
+    }
+    
+    toggleSpeechRecognition() {
+        if (!this.recognition) return;
+        
+        if (this.isListening) {
+            this.recognition.stop();
+        } else {
+            this.recognition.start();
+        }
+    }
+    
+    showVoiceStatus(message) {
+        this.statusText.textContent = message;
+        this.voiceStatus.classList.remove('d-none');
+    }
+    
+    hideVoiceStatus() {
+        this.voiceStatus.classList.add('d-none');
+    }
+    
+    convertText() {
+        const text = this.textInput.value.trim();
+        
+        if (!text) {
+            this.showEmptyState();
+            return;
+        }
+        
+        // Convert to Braille via API
+        fetch('/api/text-to-braille', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: text,
+                language: 'english'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                this.displayResults(data.original_text, data.braille_text);
+            } else {
+                this.showError(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Conversion error:', error);
+            this.showError('Conversion failed');
+        });
+    }
+    
+    displayResults(text, brailleText) {
+        this.textDisplay.innerHTML = `
+            <div class="text-center">
+                <h6 class="text-muted mb-2">Original Text</h6>
+                <p class="fs-5">${text}</p>
+            </div>
+        `;
+        
+        this.brailleOutput.innerHTML = `
+            <div class="text-center">
+                <h6 class="text-muted mb-2">Braille Output</h6>
+                <div class="braille-text fs-1" style="font-family: 'Courier New', monospace; line-height: 1.2;">
+                    ${brailleText}
+                </div>
+            </div>
+        `;
+        
+        this.readAloudBtn.disabled = false;
+    }
+    
+    showEmptyState() {
+        this.textDisplay.innerHTML = `
+            <div class="text-muted text-center">
+                <i class="fas fa-font fa-2x mb-2"></i>
+                <p>Your text will be displayed here</p>
+            </div>
+        `;
+        
+        this.brailleOutput.innerHTML = `
+            <div class="text-muted text-center">
+                <i class="fas fa-braille fa-2x mb-2"></i>
+                <p>Your Braille output will appear here</p>
+            </div>
+        `;
+        
+        this.readAloudBtn.disabled = true;
+    }
+    
+    showError(message) {
+        this.brailleOutput.innerHTML = `
+            <div class="text-danger text-center">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Error: ${message}</p>
+            </div>
+        `;
+    }
+    
+    readAloud() {
+        const text = this.textInput.value.trim();
+        if (!text) return;
+        
+        // Use the enhanced speech synthesis from speech.js
+        if (window.enhancedSpeech) {
+            window.enhancedSpeech.speak(text, 'en-US');
+        } else {
+            // Fallback to basic speech synthesis
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            speechSynthesis.speak(utterance);
+        }
+    }
+    
+    clearAll() {
+        this.textInput.value = '';
+        this.showEmptyState();
+        
+        if (this.isListening) {
+            this.recognition.stop();
+        }
+    }
+}
+
+// Initialize the converter when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    new TextToBrailleConverter();
+});
+</script>
+{% endblock %}
