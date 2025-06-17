@@ -86,23 +86,31 @@ The application follows a simple monolithic architecture built on Flask, designe
 ## Deployment Strategy
 
 ### Production Configuration
-- **WSGI Server**: Gunicorn with autoscale deployment target
-- **Binding**: 0.0.0.0:5000 for container compatibility
-- **File Uploads**: Local filesystem storage in `uploads/` directory
-- **Session Management**: Secret key from environment variables with fallback
+- **WSGI Server**: Gunicorn with single worker for optimal performance
+- **Binding**: 0.0.0.0:$PORT for Render container compatibility
+- **File Uploads**: Local filesystem storage in `uploads/` directory with 16MB limit
+- **Session Management**: Auto-generated secret key from environment variables
+- **Database**: PostgreSQL with connection pooling and auto-reconnection
 
 ### Development Setup
 - **Python Version**: 3.11+
-- **Environment**: Nix-based development environment
+- **Environment**: Nix-based development environment with uv package manager
 - **Hot Reload**: Gunicorn with reload flag for development
-- **Port Configuration**: Automatic port detection and binding
+- **Port Configuration**: Automatic port detection and binding (0.0.0.0:5000)
+
+### Deployment Requirements
+- **Render Configuration**: render.yaml with auto-scaling web service
+- **Environment Variables**: SESSION_SECRET, DATABASE_URL, PORT (auto-configured)
+- **System Packages**: Tesseract OCR and image processing libraries
+- **Dependencies**: All packages defined in pyproject.toml with version pinning
 
 ### Security Considerations
-- File type validation for uploads
-- Secure filename handling
-- File size limits to prevent abuse
-- Session secret key management
-- Input sanitization for text processing
+- File type validation for uploads (PNG, JPG, JPEG, GIF, BMP, TIFF, WEBP)
+- Secure filename handling with Werkzeug utilities
+- File size limits (16MB) to prevent abuse
+- Auto-generated session secret key management
+- Input sanitization for text processing and OCR
+- CSRF protection and secure cookie settings
 
 ## Changelog
 
@@ -156,7 +164,10 @@ The application follows a simple monolithic architecture built on Flask, designe
 ✓ Removed Hindi option from Text to Braille (English only per requirements)
 ✓ Enhanced matra visualization with color-coding and type labels
 ✓ Improved Read Aloud with proper language detection and feedback
-→ Application fully optimized for Android Studio WebView and APK deployment
+✓ Updated dependencies for Render deployment compatibility
+✓ Created deployment configuration files (render.yaml, DEPLOYMENT.md)
+✓ Added requests and urllib3 for enhanced external service integration
+→ Application ready for Render deployment and Android Studio WebView/APK deployment
 
 ## User Preferences
 
